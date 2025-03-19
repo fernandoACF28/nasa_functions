@@ -8,7 +8,7 @@ setup(
     author="Fernando Fernandes",
     author_email="fernando.allysson@usp.br",
     description="This is packpage with utils functions for makedownload and extract temporal series from hdf_files",
-    url="https://github.com/seu-usuario/meu_pacote",
+    url="https://github.com/fernandoACF28/nasa_functions",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
