@@ -141,7 +141,7 @@ def extract_csv_files_from_HDF(path:str,
     df = d5.drop_vars(['x','y','spatial_ref']).to_dataframe().reset_index()
     df_final = df.rename(columns={'band':'time'})
     os.makedirs(name_folder, exist_ok=True)
-    if path_finaly_csv == None: df_final.to_csv(f'd:/MAIAC/scripts MAIAC/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
+    if path_finaly_csv == None: df_final.to_csv(f'{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
     else: df_final.to_csv(f'{path_finaly_csv}/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
     del d1,list,list_datas,d2,d3,d4,d5,df,df_final
     
