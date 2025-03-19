@@ -26,3 +26,8 @@ for file,i in tqdm(zip(files_Hdf,range(1,len(files_Hdf),1))):
                                '2002',
                                '2002')
 ```
+# Upgrade functions
+
+``` bash 
+pip install --upgrade --force-reinstall git+https://github.com/fernandoACF28/nasa_functions.git
+```
