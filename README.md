@@ -12,6 +12,7 @@ pip install git+https://github.com/fernandoACF28/nasa_functions.git
 
 ## Here an example how to get temporal series from hdf files
 Here, we have 2 stations with lat and lon. We're open all files and get your respective temporal series.
+
 ```bash
 from glob import glob as gb
 from functions  import *
