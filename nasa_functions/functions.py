@@ -1,9 +1,10 @@
 import os
 from tqdm import tqdm
-import pandas as np
+import numpy as np
 import pandas as pd 
 import earthaccess
 import rioxarray as rxr
+import xarray as xr
 from glob import glob as gb
 from datetime import datetime,timedelta
 from warnings import filterwarnings
