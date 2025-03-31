@@ -5,8 +5,8 @@ import pandas as pd
 import earthaccess
 import rioxarray as rxr
 import xarray as xr
+from haversine import haversine, Unit
 from glob import glob as gb
-
 from datetime import datetime,timedelta
 from warnings import filterwarnings
 from concurrent.futures import ThreadPoolExecutor
