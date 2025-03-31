@@ -122,28 +122,48 @@ def extract_csv(lat,lon,path_csv):
 
 
 def extract_csv_files_from_HDF(path:str,
-                               index: int,
+                               index: int, # index of file
                                lat: float,
                                lon: float,
                                station_name: str,
                                name_folder: str,
                                year_data: str,
+                               var_select: str,
+                               radius: int = None,
                                path_finaly_csv: str = None):
-    d1 = rxr.open_rasterio(path)[0]
+    var = var_select
+    d1 = rxr.open_rasterio(path)[index]
+    d1 = d1.rename({'x':'lon','y':'lat'})
     list = d1.attrs.get('Orbit_time_stamp').split(' ')
     list_datas = [k[:-1] for k in list if len(k) > 0]
     listas_datas = [extract_time(n) for n in list_datas]
     d2 = d1.assign_coords(band=("band", listas_datas))
     d2 = d2.rio.reproject("EPSG:4326")
+    d2 = d2.var
     d3 = d2.where(d2 != -28672 , float('nan'))*0.001
-    d4 = d3.sel(x=lon,y=lat,method='nearest')
-    d5 = d4.Optical_Depth_055
-    df = d5.drop_vars(['x','y','spatial_ref']).to_dataframe().reset_index()
-    df_final = df.rename(columns={'band':'time'})
+    if radius != None:
+        lat_values,lon_values = d3.lat.values,d3.lon.values 
+        mask = np.zeros((len(lat_values),len(lon_values)),dtype=bool)
+        station_coords = (lat,lon)
+        for i,lat in enumerate(lat_values):
+            for j, lon in enumerate(lon_values):
+                distance = haversine(station_coords,(lat,lon),unit=Unit.KILOMETERS)
+                if distance <= radius:
+                    mask[i,j] = True     
+        mask_da = xr.DataArray(mask,coords={'lat':lat_values,'lon':lon_values},dims=['lat','lon'])
+        d4 = d3.where(mask_da,drop=True)
+        mean_each_time = d4.mean(dim=("lat", "lon"))
+        df = mean_each_time.drop_vars(['spatial_ref']).to_dataframe().reset_index()
+        df_final = df.rename(columns={'band':'time',var : f'{var}_{str(radius)}km'})
+    else:
+        d4 = d3.sel(x=lon,y=lat,method='nearest')
+        d4 = d4.Optical_Depth_055
+        df = d4.drop_vars(['x','y','spatial_ref']).to_dataframe().reset_index()
+        df_final = df.rename(columns={'band':'time'})
     os.makedirs(name_folder, exist_ok=True)
     if path_finaly_csv == None: df_final.to_csv(f'{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
     else: df_final.to_csv(f'{path_finaly_csv}/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
-    del d1,list,list_datas,d2,d3,d4,d5,df,df_final
+    del d1,list,list_datas,d2,d3,d4,df,df_final
     
 def extract_time(data_list:str):
     year,julian_day,hour,minute = int(data_list[:4]), int(data_list[4:7]), int(data_list[7:9]), int(data_list[9:])
