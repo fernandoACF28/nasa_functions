@@ -6,6 +6,7 @@ import earthaccess
 import rioxarray as rxr
 import xarray as xr
 from glob import glob as gb
+
 from datetime import datetime,timedelta
 from warnings import filterwarnings
 from concurrent.futures import ThreadPoolExecutor
@@ -123,7 +124,7 @@ def extract_csv(lat,lon,path_csv):
 
 
 def extract_csv_files_from_HDF(path:str,
-                               index: int, # index of file
+                               index: int,
                                lat: float,
                                lon: float,
                                station_name: str,
@@ -133,14 +134,14 @@ def extract_csv_files_from_HDF(path:str,
                                radius: int = None,
                                path_finaly_csv: str = None):
     var = var_select
-    d1 = rxr.open_rasterio(path)[index]
-    d1 = d1.rename({'x':'lon','y':'lat'})
+    d1 = rxr.open_rasterio(path)[0]
     list = d1.attrs.get('Orbit_time_stamp').split(' ')
     list_datas = [k[:-1] for k in list if len(k) > 0]
     listas_datas = [extract_time(n) for n in list_datas]
     d2 = d1.assign_coords(band=("band", listas_datas))
     d2 = d2.rio.reproject("EPSG:4326")
-    d2 = d2.var
+    d2 = d2.rename({'x':'lon','y':'lat'})
+    d2 = d2[var]
     d3 = d2.where(d2 != -28672 , float('nan'))*0.001
     if radius != None:
         lat_values,lon_values = d3.lat.values,d3.lon.values 
