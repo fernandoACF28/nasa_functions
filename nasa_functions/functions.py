@@ -166,7 +166,43 @@ def extract_csv_files_from_HDF(path:str,
     if path_finaly_csv == None: df_final.to_csv(f'{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
     else: df_final.to_csv(f'{path_finaly_csv}/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv',index=False)
     del d1,list,list_datas,d2,d3,d4,df,df_final
-    
+
+
+def extract_csv_from_HDF(path: str,
+                         index: str,
+                         station_lat: str,
+                         station_lon: str,
+                         year_data:str,
+                         station_name:str,
+                         radius_km: int,
+                         folder_csv: str):
+    ''' 
+    path: the directory of your file xarray
+    index: number of your file
+    station_lat: the latitude of interesting
+    station_lon: the longitutde of interesting
+    year_data: the year of file for organize 
+    station_name: name of your station interesting
+    radius_km: the radius in kilometer for make the mean
+    folder_csv: name of folder to save your files  
+    '''
+    ds = xr.open_dataset(path)
+    station_lat, station_lon = -23.6, -46.7
+    def filter_by_radius(ds, station_coords, radius):
+        distances = xr.apply_ufunc(
+            lambda lat, lon: haversine(station_coords, (lat, lon), unit=Unit.KILOMETERS),
+            ds.lat,
+            ds.lon,
+            vectorize=True
+        )
+        return ds.where(distances <= radius).mean(dim=("lat", "lon"))
+    mean_within_radius = filter_by_radius(ds, (station_lat, station_lon), radius_km)
+    df = mean_within_radius.to_dataframe().reset_index()
+    os.makedirs(folder_csv, exist_ok=True)
+    if folder_csv == None: df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
+    else: df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
+    del ds,df
+
 def extract_time(data_list:str):
     year,julian_day,hour,minute = int(data_list[:4]), int(data_list[4:7]), int(data_list[7:9]), int(data_list[9:])
     date = datetime(year, 1, 1) + timedelta(days=julian_day - 1)
