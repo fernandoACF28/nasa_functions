@@ -199,8 +199,7 @@ def extract_csv_from_NetCDF(path: str,
     mean_within_radius = filter_by_radius(ds, (station_lat, station_lon), radius_km)
     df = mean_within_radius.to_dataframe().reset_index()
     os.makedirs(folder_csv, exist_ok=True)
-    if folder_csv == None: df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
-    else: df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
+    df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
     del ds,df
 
 def extract_time(data_list:str):
