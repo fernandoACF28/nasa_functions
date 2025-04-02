@@ -191,6 +191,10 @@ def expected_error_AOD(aod_station,
 
 def mergin_csv_in_one(df1,
                       df2):
+    '''
+    df1 : the first dataframe with you want to merge
+    df2: the second dataframe with you want to merge   
+    '''
     df1["time"], df2["time"] = pd.to_datetime(df1["time"]),pd.to_datetime(df2["time"])
     df1, df2 = df1.drop_duplicates(subset=["time"]), df2.drop_duplicates(subset=["time"])
     df1, df2 = df1.sort_values("time"),df2.sort_values("time")
@@ -214,3 +218,13 @@ def treatments_aeronet(df):
     df['time'] = df['Date(dd:mm:yyyy)'] + df['Time(hh:mm:ss)']
     df_new = df[['time', 'AOD_550nm']].drop_duplicates()
     return df_new
+
+
+def rmse_dataframe(df,var1,var2):
+    ''' 
+    df: dataframe
+    var1: variable 1 - real
+    var2: variable 2 - predicted
+    '''
+    rmse = rmse = (np.mean((df[var1] - df[var2]) ** 2)) ** 0.5
+    return rmse
