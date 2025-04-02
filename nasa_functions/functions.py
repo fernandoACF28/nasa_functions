@@ -168,7 +168,7 @@ def extract_csv_files_from_HDF(path:str,
     del d1,list,list_datas,d2,d3,d4,df,df_final
 
 
-def extract_csv_from_HDF(path: str,
+def extract_csv_from_NetCDF(path: str,
                          index: str,
                          station_lat: str,
                          station_lon: str,
