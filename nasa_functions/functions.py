@@ -195,15 +195,17 @@ def extract_csv_from_NetCDF(path: str,
     radius_km: the radius in kilometer for make the mean
     folder_csv: name of folder to save your files  
     '''
-    ds = xr.open_dataset(path)
-    mean_within_radius = filter_by_radius(ds, (station_lat, station_lon), radius_km)
-    df = mean_within_radius.to_dataframe().reset_index()
+    try:
+        ds = xr.open_dataset(path)
+        mean_within_radius = filter_by_radius(ds, (station_lat, station_lon), radius_km)
+        df = mean_within_radius.to_dataframe().reset_index()
+    except: pass
     folder_csv = folder_csv
     os.makedirs(folder_csv, exist_ok=True)
     try: 
         df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
         print('ok ok')
-    except: pass 
+    except: pass
     del ds,df
 
 def extract_time(data_list:str):
