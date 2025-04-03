@@ -204,7 +204,6 @@ def extract_csv_from_NetCDF(path: str,
     os.makedirs(folder_csv, exist_ok=True)
     try: 
         df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
-        print('ok ok')
     except: pass
     del ds,df
 
