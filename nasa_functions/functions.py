@@ -168,6 +168,15 @@ def extract_csv_files_from_HDF(path:str,
     del d1,list,list_datas,d2,d3,d4,df,df_final
 
 
+def filter_by_radius(ds, station_coords, radius):
+        distances = xr.apply_ufunc(
+            lambda lat, lon: haversine(station_coords, (lat, lon), unit=Unit.KILOMETERS),
+            ds.lat,
+            ds.lon,
+            vectorize=True
+        )
+        return ds.where(distances <= radius).mean(dim=("lat", "lon"))
+
 def extract_csv_from_NetCDF(path: str,
                          index: str,
                          station_lat: str,
@@ -187,19 +196,14 @@ def extract_csv_from_NetCDF(path: str,
     folder_csv: name of folder to save your files  
     '''
     ds = xr.open_dataset(path)
-    station_lat, station_lon = -23.6, -46.7
-    def filter_by_radius(ds, station_coords, radius):
-        distances = xr.apply_ufunc(
-            lambda lat, lon: haversine(station_coords, (lat, lon), unit=Unit.KILOMETERS),
-            ds.lat,
-            ds.lon,
-            vectorize=True
-        )
-        return ds.where(distances <= radius).mean(dim=("lat", "lon"))
     mean_within_radius = filter_by_radius(ds, (station_lat, station_lon), radius_km)
     df = mean_within_radius.to_dataframe().reset_index()
+    folder_csv = folder_csv
     os.makedirs(folder_csv, exist_ok=True)
-    df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
+    try: 
+        df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv',index=False)
+        print('ok ok')
+    except: pass 
     del ds,df
 
 def extract_time(data_list:str):
