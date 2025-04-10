@@ -268,3 +268,73 @@ def rmse_dataframe(df,var1,var2):
     '''
     rmse = rmse = (np.mean((df[var1] - df[var2]) ** 2)) ** 0.5
     return rmse
+
+
+
+def extract_csv_files_from_HDF_STD(path: str,
+                               index: int,
+                               lat: float,
+                               lon: float,
+                               station_name: str,
+                               name_folder: str,
+                               year_data: str,
+                               var_select: str,
+                               radius: int = None,
+                               path_finaly_csv: str = None):
+    var = var_select
+    d1 = rxr.open_rasterio(path)[0]
+    list = d1.attrs.get('Orbit_time_stamp').split(' ')
+    list_datas = [k[:-1] for k in list if len(k) > 0]
+    listas_datas = [extract_time(n) for n in list_datas]
+    
+    d2 = d1.assign_coords(band=("band", listas_datas))
+    d2 = d2.rio.reproject("EPSG:4326")
+    d2 = d2.rename({'x':'lon', 'y':'lat'})
+    d2 = d2[var]
+    d3 = d2.where(d2 != -28672, float('nan')) * 0.001
+
+    if radius is not None:
+        lat_values, lon_values = d3.lat.values, d3.lon.values 
+        mask = np.zeros((len(lat_values), len(lon_values)), dtype=bool)
+        station_coords = (lat, lon)
+
+        for i, lat_val in enumerate(lat_values):
+            for j, lon_val in enumerate(lon_values):
+                distance = haversine(station_coords, (lat_val, lon_val), unit=Unit.KILOMETERS)
+                if distance <= radius:
+                    mask[i, j] = True     
+        
+        mask_da = xr.DataArray(mask, coords={'lat': lat_values, 'lon': lon_values}, dims=['lat', 'lon'])
+        d4 = d3.where(mask_da, drop=True)
+
+        # Média e desvio padrão espacial
+        mean_each_time = d4.mean(dim=("lat", "lon"))
+        std_each_time = d4.std(dim=("lat", "lon"))
+
+        # DataFrame
+        df_mean = mean_each_time.drop_vars(['spatial_ref']).to_dataframe().reset_index()
+        df_std = std_each_time.to_dataframe().reset_index()
+
+        df_final = df_mean.merge(df_std, on='band')
+        df_final = df_final.rename(columns={
+            'band': 'time',
+            var: f'{var}_{str(radius)}km',
+            f'{var}_std': f'{var}_{str(radius)}km_std'
+        })
+
+    else:
+        # Valor pontual
+        d4 = d3.sel(lon=lon, lat=lat, method='nearest')
+        df = d4.drop_vars(['lon', 'lat', 'spatial_ref']).to_dataframe().reset_index()
+        df_final = df.rename(columns={'band': 'time', var: f'{var}_point'})
+
+
+    # Salvar CSV
+    os.makedirs(name_folder, exist_ok=True)
+    output_path = f'{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv' \
+        if path_finaly_csv is None else f'{path_finaly_csv}/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}.csv'
+    
+    df_final.to_csv(output_path, index=False)
+
+    # Limpeza
+    del d1, list, list_datas, d2, d3, d4, df_final
