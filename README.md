@@ -31,7 +31,9 @@ for file,i in tqdm(zip(files_Hdf,range(1,len(files_Hdf),1))):
 ``` bash 
 pip install --upgrade --force-reinstall git+https://github.com/fernandoACF28/nasa_functions.git
 ```
-# For using the process_hdf_FILES() install in your virtual enviroment (use python version 3.10).
+# For using the process_hdf_FILES().
+
+Install in your virtual enviroment (use python version 3.10)
 ``` bash 
 conda create -n name_your_enviroment python=3.10
 
