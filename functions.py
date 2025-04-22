@@ -244,7 +244,7 @@ def mergin_csv_in_one(df1,
         direction="backward",  # Ou "forward" ou "nearest"
         tolerance=pd.Timedelta("10min")  # tolerance
     )
-    return df_merged.dropna()#.drop(columns='time') # reset index optional
+    return df_merged.dropna().drop(columns='time') # reset index optional
 
 def treatments_aeronet(df):
     ''' 
