@@ -217,20 +217,20 @@ def extract_time(data_list:str):
 
 
 
-def expected_error_AOD(aod_station, 
-                       aod_estimated):
+def expected_error_AOD(aod_station, aod_estimated,margin_error:int):
     """
-    Calculate the error and the diference between expected AOD and estimate
-    with respect AERONET Station.
+    Verifica a proporção de estimativas AOD dentro do intervalo de erro esperado (EE),
+    conforme o critério: AOD - EE <= AOD_modelo <= AOD + EE
+    onde EE = 0.05 + 0.1 * AOD.
     """
-    expected_aod = aod_station * 0.1 + 0.05 # https://doi.org/10.1016/j.atmosenv.2021.118659
-    error_diff = aod_estimated - expected_aod
-    relative_error_percentage = (abs(error_diff) / expected_aod) * 100
-    mean_error_percentage = relative_error_percentage.mean() if hasattr(relative_error_percentage, 'mean') else relative_error_percentage
-    return mean_error_percentage
+    expected_error = 0.05 + margin_error * aod_station
+    lower_bound = aod_station - expected_error
+    upper_bound = aod_station + expected_error
+    within_envelope = (aod_estimated >= lower_bound) & (aod_estimated <= upper_bound)
+    proportion_within_envelope = within_envelope.sum() / len(within_envelope)
+    return proportion_within_envelope*100
 
-def mergin_csv_in_one(df1,
-                      df2):
+def mergin_csv_in_one(df1,df2):
     '''
     df1 : the first dataframe with you want to merge
     df2: the second dataframe with you want to merge   
