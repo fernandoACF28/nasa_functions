@@ -1,29 +1,32 @@
-import os
-from tqdm import tqdm
-import numpy as np
-import pandas as pd 
-import earthaccess
-import rioxarray as rxr
-import xarray as xr
-from haversine import haversine, Unit
-from glob import glob as gb
-from datetime import datetime,timedelta
-from warnings import filterwarnings
-from concurrent.futures import ThreadPoolExecutor
-filterwarnings('ignore')
+# HERE WE HAVE SOME IMPORTANTS LIBRARIES FOR IMPORT
+try:
+    import os
+    from tqdm import tqdm
+    import numpy as np
+    import pandas as pd 
+    import earthaccess
+    import rioxarray as rxr
+    import xarray as xr
+    from haversine import haversine, Unit
+    from glob import glob as gb
+    from datetime import datetime,timedelta
+    from warnings import filterwarnings
+    from concurrent.futures import ThreadPoolExecutor
+    filterwarnings('ignore')
+except Exception as ee:
+    print(f'HAVE A ERROR FROM LIBRARIES HERE --->> {ee}')
 
-
-
-
-
-# This function is util for create a temporal series for do download. asdfasdfasdfasd asd 
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+# This function is useful for create a temporal series for do download.
 def date_list_range(start_date,
                     end_date,
                     start_time,
                     end_time):
     dataframes_list = []
-    date_range = pd.date_range(start=start_date, 
+    date_range = pd.date_range(start=start_date,
                                end=end_date)
     for date in date_range:
         df = pd.DataFrame({
@@ -32,9 +35,11 @@ def date_list_range(start_date,
         })
         dataframes_list.append(df)
     return dataframes_list
-
-#  This fuction is util for download of products from NASA.
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+#  This fuction is useful for download of products from NASA. ##########################################
 def downloads_files_nasa(start_date: str, 
                          end_date: str,
                          product_name: str, 
@@ -116,13 +121,11 @@ def downloads_files_nasa(start_date: str,
     
 
     print(f'Your download for {start_date} until {end_date} is complete!')
-
-
-def extract_csv(lat,lon,path_csv):
-    df = ds.sel(lat=lat,lon=lon,method='nearest').to_dataframe().drop(columns={'lat','lon','spatial_ref'}).reset_index() # Here, I set the lat and lon closer the station.
-    df.to_csv(path_csv,index=False) # Here, I'm saving all csv files
-
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+# This functions is uselful for extract csv data from a hdf file #######################################
 def extract_csv_files_from_HDF(path:str,
                                index: int,
                                lat: float,
@@ -166,8 +169,11 @@ def extract_csv_files_from_HDF(path:str,
     if path_finaly_csv == None: df_final.to_csv(f'{name_folder}/MCD19A2_{year_data}_{station_name}_{index}_{radius}.csv',index=False)
     else: df_final.to_csv(f'{path_finaly_csv}/{name_folder}/MCD19A2_{year_data}_{station_name}_{index}_{radius}.csv',index=False)
     del d1,list,list_datas,d2,d3,d4,df,df_final
-
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+# These functions is useful for create a circle for delimiting a circle around the station. ############
 def filter_by_radius(ds, station_coords, radius):
         distances = xr.apply_ufunc(
             lambda lat, lon: haversine(station_coords, (lat, lon), unit=Unit.KILOMETERS),
@@ -176,7 +182,11 @@ def filter_by_radius(ds, station_coords, radius):
             vectorize=True
         )
         return ds.where(distances <= radius).mean(dim=("lat", "lon"))
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+################# This functions is uselful for extract csv data from a NetCDF file ####################
 def extract_csv_from_NetCDF(path: str,
                          index: str,
                          station_lat: str,
@@ -215,37 +225,88 @@ def extract_time(data_list:str):
     dt = datetime.strptime(string_year,"%Y-%m-%d %H:%M:%S") # create datetime
     return str(dt) 
 
-
-
-def expected_error_AOD(aod_station, aod_estimated,margin_error:int):
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+################# This functions is useful METRIC GET ACCURRACY OF a product of RETRIEVAL  #############
+def expected_error_AOD(aod_station, 
+                       aod_estimated,
+                       val_percent):
     """
-    Verifica a proporção de estimativas AOD dentro do intervalo de erro esperado (EE),
-    conforme o critério: AOD - EE <= AOD_modelo <= AOD + EE
-    onde EE = 0.05 + 0.1 * AOD.
+    aod_station: insert aod_reference_station
+    aod_estimed: insert aod_estimated
+    val_percent: the percent of error
+    Checking the envelope of AOD estimated between the expected error (EE),
+    about this criteria: AOD - EE <= AOD_modelo <= AOD + EE
+    where EE = 0.05 + 0.1 * AOD. https://darktarget.gsfc.nasa.gov/content/what-estimated-error-aod-dark-target-product
     """
-    expected_error = 0.05 + margin_error * aod_station
+    aod_station,aod_estimated = aod_station.dropna(),aod_estimated.dropna()
+    expected_error = 0.05 + val_percent * aod_station
     lower_bound = aod_station - expected_error
     upper_bound = aod_station + expected_error
     within_envelope = (aod_estimated >= lower_bound) & (aod_estimated <= upper_bound)
     proportion_within_envelope = within_envelope.sum() / len(within_envelope)
     return proportion_within_envelope*100
-
-def mergin_csv_in_one(df1,df2):
-    '''
-    df1 : the first dataframe with you want to merge
-    df2: the second dataframe with you want to merge   
-    '''
-    df1["time"], df2["time"] = pd.to_datetime(df1["time"]),pd.to_datetime(df2["time"])
-    df1, df2 = df1.drop_duplicates(subset=["time"]), df2.drop_duplicates(subset=["time"])
-    df1, df2 = df1.sort_values("time"),df2.sort_values("time")
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+################# This functions is useful Matching csv file in the Time (time window)  ################
+def Organize_time(df_aeronet, 
+                           df_satellite,
+                           x_col,
+                           aeronet_aod_col='AOD_550nm',
+                           window_minutes='15min',
+                           merge_tolerance='15min',
+                           min_samples=2,
+                           kind_direction='nearest'):
+    """
+    This function do the centered mean for each line of a dataframe in a ±window_minutes.  
+    Parâmetros:
+    - df_aeronet: DataFrame with the data
+    - df_satellite: DataFrame with the data
+    - x_col: nome of column time
+    - aeronet_aod_col: name of var to do mean
+    - window_minutes:  the window of interesting each side ex ±15min 
+    - merge_tolerance: the tolerance to matching ±15min 
+    - min_samples: min of samples to do a mean
+    - direction_kind: "backward","forward" and "nearest"
+    these function return a dataframe with --> [time_col, value_col+'_mean', 'n_samples']
+    """
+    df_aero,df_sat = df_aeronet.copy(),df_satellite.copy()
+    df_aero[x_col],df_sat[x_col] = pd.to_datetime(df_aero[x_col]), pd.to_datetime(df_sat[x_col])
+    df_aero,df_sat = df_aero.sort_values(x_col),df_sat.sort_values(x_col)
+    stats = []
+    for _, sat_row in df_sat.iterrows():
+        t_center = sat_row[x_col]
+        t_start = t_center - pd.Timedelta(window_minutes)
+        t_end = t_center + pd.Timedelta(window_minutes)
+        mask = (df_aero[x_col] >= t_start) & (df_aero[x_col] <= t_end)
+        subset = df_aero.loc[mask]
+        if len(subset) >= min_samples:
+            stats.append({
+                'time': t_center,
+                'AOD_AERONET_mean': subset[aeronet_aod_col].mean(),
+                'AOD_AERONET_std': subset[aeronet_aod_col].std(),
+                'n_samples': len(subset),
+                'window_start': t_start,
+                'window_end': t_end
+            })
+    df_stats = pd.DataFrame(stats)
     df_merged = pd.merge_asof(
-        df1, df2, 
-        on="time", 
-        direction="backward",  # Ou "forward" ou "nearest"
-        tolerance=pd.Timedelta("10min")  # tolerance
-    )
-    return df_merged.dropna().drop(columns='time') # reset index optional
+        df_sat,
+        df_stats,
+        on=x_col,
+        direction=kind_direction, #type: ignore
+        tolerance=pd.Timedelta(merge_tolerance))
 
+    return df_merged
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+################# This functions is useful for interpolate the AOD and Organize AERONET data ###########
 def treatments_aeronet(df):
     ''' 
     df : dataframe from aeronet
@@ -258,8 +319,11 @@ def treatments_aeronet(df):
     df['time'] = df['Date(dd:mm:yyyy)'] + df['Time(hh:mm:ss)']
     df_new = df[['time', 'AOD_550nm']].drop_duplicates()
     return df_new
-
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+############################## RMSE METRIC #############################################################
 def rmse_dataframe(df,var1,var2):
     ''' 
     df: dataframe
@@ -268,9 +332,11 @@ def rmse_dataframe(df,var1,var2):
     '''
     rmse = rmse = (np.mean((df[var1] - df[var2]) ** 2)) ** 0.5
     return rmse
-
-
-
+########################################################################################################
+########################################################################################################
+########################################################################################################
+########################################################################################################
+############### Extract csv from hdf files with standard values ########################################
 def extract_csv_files_from_HDF_STD(path: str,
                                index: int,
                                lat: float,
