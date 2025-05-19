@@ -37,5 +37,5 @@ Install in your virtual enviroment (use python version 3.10)
 ``` bash 
 conda create -n name_your_enviroment python=3.10
 
-conda install -c conda-forge rasterio pyproj rioxarray geopandas gdal xarray libgdal-hdf4
+conda install -c conda-forge rasterio pyproj rioxarray geopandas gdal xarray libgdal-hdf4 tqdm ipywidgets
 ```
