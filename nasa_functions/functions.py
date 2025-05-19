@@ -1,20 +1,19 @@
 # HERE WE HAVE SOME IMPORTANTS LIBRARIES FOR IMPORT
-try:
-    import os
-    from tqdm import tqdm
-    import numpy as np
-    import pandas as pd 
-    import earthaccess
-    import rioxarray as rxr
-    import xarray as xr
-    from haversine import haversine, Unit
-    from glob import glob as gb
-    from datetime import datetime,timedelta
-    from warnings import filterwarnings
-    from concurrent.futures import ThreadPoolExecutor
-    filterwarnings('ignore')
-except Exception as ee:
-    print(f'HAVE A ERROR FROM LIBRARIES HERE --->> {ee}')
+
+import os
+from tqdm import tqdm
+import numpy as np
+import pandas as pd 
+import earthaccess
+import rioxarray as rxr
+import xarray as xr
+from haversine import haversine, Unit
+from glob import glob as gb
+from datetime import datetime,timedelta
+from warnings import filterwarnings
+from concurrent.futures import ThreadPoolExecutor
+filterwarnings('ignore')
+
 
 ########################################################################################################
 ########################################################################################################
