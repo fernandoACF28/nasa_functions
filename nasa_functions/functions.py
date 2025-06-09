@@ -7,6 +7,7 @@ import pandas as pd
 import earthaccess
 import rioxarray as rxr
 import xarray as xr
+import collect
 from haversine import haversine, Unit
 from glob import glob as gb
 from datetime import datetime,timedelta
@@ -345,10 +346,11 @@ def extract_csv_files_from_HDF_STD(path: str,
                                name_folder: str,
                                year_data: str,
                                var_select: str,
+                               index_rasterio: int=0,
                                radius: int = None,
                                path_finaly_csv: str = None):
     var = var_select
-    d1 = rxr.open_rasterio(path)[0]
+    d1 = rxr.open_rasterio(path)[index_rasterio]
     list = d1.attrs.get('Orbit_time_stamp').split(' ')
     list_datas = [k[:-1] for k in list if len(k) > 0]
     listas_datas = [extract_time(n) for n in list_datas]
@@ -404,3 +406,42 @@ def extract_csv_files_from_HDF_STD(path: str,
 
     # Limpeza
     del d1, list, list_datas, d2, d3, d4, df_final
+
+
+def extract_csv_from_NetCDF_STD(path: str,
+                             index: str,
+                             station_lat: str,
+                             station_lon: str,
+                             year_data: str,
+                             station_name: str,
+                             radius_km: int,
+                             folder_csv: str):
+    ''' 
+    path: the directory of your file xarray
+    index: number of your file
+    station_lat: the latitude of interest
+    station_lon: the longitude of interest
+    year_data: the year of file for organization 
+    station_name: name of your station
+    radius_km: radius in kilometers to calculate mean and std
+    folder_csv: folder where the CSV will be saved  
+    '''
+    try:
+        ds = xr.open_dataset(path)
+        subset = filter_by_radius(ds, (station_lat, station_lon), radius_km)
+        mean_ds = subset.mean(dim=["lat", "lon"], skipna=True)
+        std_ds = subset.std(dim=["lat", "lon"], skipna=True)
+        mean_df = mean_ds.to_dataframe().reset_index()
+        std_df = std_ds.to_dataframe().reset_index()
+        std_df = std_df.rename(columns={col: f"{col}_std" for col in std_df.columns if col not in ['time']})
+        df = mean_df.merge(std_df, on="time", how="left")
+    except Exception as e:
+        print(f"Error {path}: {e}")
+        return
+    os.makedirs(folder_csv, exist_ok=True)
+    try:
+        df.to_csv(f'{folder_csv}/{year_data}_{station_name}_{index}.csv', index=False)
+        print(f"Arquivo salvo: {folder_csv}/{year_data}_{station_name}_{index}.csv")
+    except Exception as e:
+        print(f"Erro ao salvar CSV: {e}")
+    gc.collect()
