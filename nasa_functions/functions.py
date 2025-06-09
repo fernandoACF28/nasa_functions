@@ -7,7 +7,7 @@ import pandas as pd
 import earthaccess
 import rioxarray as rxr
 import xarray as xr
-import collect
+import gc
 from haversine import haversine, Unit
 from glob import glob as gb
 from datetime import datetime,timedelta
@@ -421,7 +421,7 @@ def extract_csv_from_NetCDF_STD(path: str,
     index: number of your file
     station_lat: the latitude of interest
     station_lon: the longitude of interest
-    year_data: the year of file for organization 
+    year_data: the year of file for organization
     station_name: name of your station
     radius_km: radius in kilometers to calculate mean and std
     folder_csv: folder where the CSV will be saved  
