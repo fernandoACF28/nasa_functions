@@ -47,7 +47,7 @@ maiac = Maiac(path=path,
                         coordinates=(-23.561500, -46.734983),
                         window_size=window_size,
                         number_int=1)
-    return maiac.extract_csv()
+maiac.extract_csv()
 ```
     
 
