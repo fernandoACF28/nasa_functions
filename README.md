@@ -36,6 +36,21 @@ pip install --upgrade --force-reinstall git+https://github.com/fernandoACF28/nas
 Install in your virtual enviroment (use python version 3.10)
 ``` bash 
 conda create -n name_your_enviroment python=3.10
+```
 
-conda install -c conda-forge rasterio pyproj rioxarray geopandas gdal xarray libgdal-hdf4 tqdm ipywidgets haversine
+Preparing your environment:
+First install the package manager ultra violet (uv) in your virtual environment.
+
+``` bash 
+pip install uv
+```
+
+For all the libraries:
+
+``` bash 
+uv pip install rasterio pyproj rioxarray geopandas xarray tqdm 
+```
+for the libraries gdal and libgdal-hdf4 you need install using conda.
+``` bash 
+conda install conda-forge -c gdal libgdal-hdf4
 ```
