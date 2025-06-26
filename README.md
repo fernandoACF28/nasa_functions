@@ -48,9 +48,9 @@ pip install uv
 For all the libraries:
 
 ``` bash 
-uv pip install rasterio pyproj rioxarray geopandas xarray tqdm 
+uv pip install pyproj rioxarray geopandas xarray tqdm 
 ```
 for the libraries gdal and libgdal-hdf4 you need install using conda.
 ``` bash 
-conda install conda-forge -c gdal libgdal-hdf4
+conda install -c conda-forge gdal=3.10 rasterio libgdal-hdf4
 ```
