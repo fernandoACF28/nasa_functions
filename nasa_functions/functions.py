@@ -410,8 +410,8 @@ def extract_csv_files_from_HDF_STD(path: str,
 
 def extract_csv_from_NetCDF_STD(path: str,
                              index: str,
-                             station_lat: str,
-                             station_lon: str,
+                             station_lat: float,
+                             station_lon: float,
                              year_data: str,
                              station_name: str,
                              radius_km: int,
@@ -428,6 +428,9 @@ def extract_csv_from_NetCDF_STD(path: str,
     '''
     try:
         ds = xr.open_dataset(path)
+        tempo = pd.to_datetime(string_total)
+        ds = ds.expand_dims(time=[tempo])
+        ds = ds.rename({'Band1':'AOD_550nm_DT'}).drop_vars('crs')
         subset = filter_by_radius(ds, (station_lat, station_lon), radius_km)
         mean_ds = subset.mean(dim=["lat", "lon"], skipna=True)
         std_ds = subset.std(dim=["lat", "lon"], skipna=True)
