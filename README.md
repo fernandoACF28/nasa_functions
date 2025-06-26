@@ -36,7 +36,7 @@ pip install git+https://github.com/fernandoACF28/nasa_functions.git
 # For using the process_hdf_FILES().
 ## Here an example how to get temporal series from hdf files
 Here, we have one station with lat and lon. We're open all files and get your respective temporal series.
-
+``` bash 
 maiac = Maiac(path=path,
                         var='Optical_Depth_055',
                         scale_factor=0.001,
@@ -48,7 +48,7 @@ maiac = Maiac(path=path,
                         window_size=window_size,
                         number_int=1)
     return maiac.extract_csv()
-
+```
     
 
 # Upgrade functions
