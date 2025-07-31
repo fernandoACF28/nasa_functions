@@ -90,7 +90,8 @@ def downloads_files_nasa(start_date: str,
                 return start_time, True
             else:
                 return start_time, False
-        except: pass
+        except:
+            return start_time, False
 
     # parallezing the downloads with ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=threads) as executor:
