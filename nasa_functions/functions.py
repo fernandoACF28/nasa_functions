@@ -90,9 +90,7 @@ def downloads_files_nasa(start_date: str,
                 return start_time, True
             else:
                 return start_time, False
-        except Exception as e:
-            print(f"Error in downloading {start_time}: {e}")
-            return start_time, False
+        except: pass
 
     # parallezing the downloads with ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=threads) as executor:
