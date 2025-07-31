@@ -192,22 +192,12 @@ class Maiac:
         new_ds = ds.where(mask_ideal)
         return new_ds
     
-    @staticmethod
-    def filter_optimized(ds, angle_ds):
-        cosVZA = angle_ds['cosVZA'].where(angle_ds['cosVZA'] != -28672).interp_like(ds, method='nearest') * 0.0001
-        cosSZA = angle_ds['cosSZA'].where(angle_ds['cosSZA'] != -28672).interp_like(ds, method='nearest') * 0.0001
-        scatter_angle = angle_ds['Scattering_Angle'].where(angle_ds['Scattering_Angle'] != -28672).interp_like(ds, method='nearest') * 0.01
-        angle_mask = (cosVZA > 0.7) & (cosSZA > 0.5)
-        scatter_mask = (scatter_angle >= 100) & (scatter_angle <= 140)
-        masked = ds.where(angle_mask & scatter_mask)
-        return masked
     
     def filter_data(self):
         """
         Organizing your file, according to your filter
         """   
         ds = rxr.open_rasterio(self.path)[self.index_hdf_aod]
-        ds_angle = rxr.open_rasterio(self.path)[self.index_hdf_angle]
         qa = ds['AOD_QA']
         mask_ideal = xr.ones_like(qa, dtype=bool)
 
@@ -215,8 +205,7 @@ class Maiac:
             condition = Maiac.apply_mask(qa, mask_name, value_name)
             mask_ideal &= condition
         new_ds = ds.where(mask_ideal)
-        ds_new = Maiac.filter_optimized(new_ds,ds_angle)
-        ds_new = ds_new.where(mask_ideal).rename({'x': 'lon', 'y': 'lat'})
+        ds_new = new_ds.where(mask_ideal).rename({'x': 'lon', 'y': 'lat'})
         ds_new = ds_new[self.var].where(ds_new[self.var] != self.fillValue) * self.scale_factor
         lista = ds.attrs.get('Orbit_time_stamp').split(' ')
         list_datas = [k[:-1] for k in lista if k]
@@ -290,7 +279,7 @@ def expected_error_AOD(aod_station, aod_estimated):
     onde EE = 0.05 + 0.1 * AOD.
     """
     aod_station,aod_estimated = aod_station.dropna(),aod_estimated.dropna()
-    expected_error = 0.05 + 0.15 * aod_station
+    expected_error = 0.05 + 0.15 * aod_estimated
     lower_bound = aod_station - expected_error
     upper_bound = aod_station + expected_error
         
