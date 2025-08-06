@@ -281,7 +281,7 @@ class Maiac:
     def select_pixels(ds,
                     station: tuple[float, float],
                     window_size:int):
-        lat,lon = station[1],station[0]
+        lat,lon = station[0],station[1]
         lat_idx = np.abs(ds.lat.values - lat).argmin()
         lon_idx = np.abs(ds.lon.values - lon).argmin()
         lat_start = max(0, lat_idx - window_size)
