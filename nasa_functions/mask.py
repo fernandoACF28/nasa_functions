@@ -280,8 +280,8 @@ class Maiac:
                         dictionary_station[f'inst_aod'] = center_value
                         if isinstance(valid_win, int) and valid_pixels >= valid_win:
                             val_mean, val_std = classe.get_mean_and_STD(ds_filled, i_time)
-                            dictionary_station[f'mean_px_{win_size}x{win_size}'] = val_mean
-                            dictionary_station[f'std_px_{win_size}x{win_size}'] = val_std
+                            dictionary_station[f'mean_px_{win}x{win}'] = val_mean
+                            dictionary_station[f'std_px_{win}x{win}'] = val_std
                         else:
                             dictionary_station[f'mean_px_{win}x{win}'] = np.nan
                             dictionary_station[f'std_px_{win}x{win}'] = np.nan
