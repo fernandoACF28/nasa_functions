@@ -278,7 +278,7 @@ class Maiac:
                     try:
                         dictionary_station[f'inst_aod'] = arr[win][win]
                         if isinstance(valid_win, int) and valid_pixels >= valid_win:
-                            val_mean, val_std = get_mean_and_STD(ds_filled, i_time)
+                            val_mean, val_std = classe.get_mean_and_STD(ds_filled, i_time)
                             dictionary_station[f'mean_px_{win}x{win}'] = val_mean
                             dictionary_station[f'std_px_{win}x{win}'] = val_std
                         else:
