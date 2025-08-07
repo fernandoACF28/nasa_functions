@@ -275,17 +275,18 @@ class Maiac:
                     arr = ds_filled.isel(time=i_time).values
                     valid_pixels = int(np.sum(~np.isnan(arr)))
                     valid_win = classe.valid_windows(win)
-                    try:
-                        dictionary_station[f'inst_aod'] = arr[win][win]
+                    center_value = arr[win][win]
+                    if isinstance(center_value, (int, float, np.integer, np.floating)) and not np.isnan(center_value):
+                        dictionary_station[f'inst_aod'] = center_value
                         if isinstance(valid_win, int) and valid_pixels >= valid_win:
-                            val_mean, val_std = classe.get_mean_and_STD(ds_filled, i_time)
-                            dictionary_station[f'mean_px_{win}x{win}'] = val_mean
-                            dictionary_station[f'std_px_{win}x{win}'] = val_std
+                            val_mean, val_std = get_mean_and_STD(ds_filled, i_time)
+                            dictionary_station[f'mean_px_{win_size}x{win_size}'] = val_mean
+                            dictionary_station[f'std_px_{win_size}x{win_size}'] = val_std
                         else:
                             dictionary_station[f'mean_px_{win}x{win}'] = np.nan
                             dictionary_station[f'std_px_{win}x{win}'] = np.nan
                             sequence_broken = True
-                    except Exception as e: print(f'{e}') 
+                    else: pass
                 data_list.append(dictionary_station)
         
         df = pd.DataFrame(data_list)
