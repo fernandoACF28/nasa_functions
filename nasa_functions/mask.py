@@ -348,7 +348,7 @@ class AeroStations:
         # retirate line from plot left and bootom 
         #sns.despine(left=False, bottom=False)
         # Useful metrics
-        ee = expected_error_AOD(aod_station=self.data[self.x_col],aod_estimated=self.data[self.y_col])
+        ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
         rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
         n_samples = len(self.data)
         mask = ~np.isnan(self.data[self.x_col]) & ~np.isnan(self.data[self.y_col])
