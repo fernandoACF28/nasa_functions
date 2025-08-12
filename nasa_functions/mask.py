@@ -291,11 +291,11 @@ class Maiac:
         
         df = pd.DataFrame(data_list)
         os.makedirs('Parquet_datas', exist_ok=True)     
-        df.to_parquet(f'Parquet_datas/{self.product_name}_{self.year}_{self.index_iteraction}.parquet',index=False)
+        df.to_parquet(f'Parquet_datas/{self.product_name}_{self.year}_{self.index_iteraction}.parquet',index=False) # aod_estimated
 
     
 
-def expected_error_AOD(aod_station, aod_estimated):
+def expected_error_AOD(aod_station, aod_estimated):  # aod_estimated
     """
     aod_station: insert aod_reference_station
     aod_estimed: insert aod_estimated
@@ -307,13 +307,16 @@ def expected_error_AOD(aod_station, aod_estimated):
     onde EE = 0.05 + 0.1 * AOD.
     """
     aod_station,aod_estimated = aod_station.dropna(),aod_estimated.dropna()
-    expected_error = 0.05 + 0.15 * aod_estimated
+    expected_error = 0.05 + 0.15 * aod_station
     lower_bound = aod_station - expected_error
     upper_bound = aod_station + expected_error
         
     within_envelope = (aod_estimated >= lower_bound) & (aod_estimated <= upper_bound)
     proportion_within_envelope = within_envelope.sum() / len(within_envelope)
     return proportion_within_envelope*100
+
+
+
 
 class AeroStations:
     def __init__(self,data,x_col,y_col,std_val_x,std_val_y,x_label,y_label,title,axis):
@@ -345,7 +348,7 @@ class AeroStations:
         # retirate line from plot left and bootom 
         #sns.despine(left=False, bottom=False)
         # Useful metrics
-        ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
+        ee = expected_error_AOD(aod_station=self.data[self.x_col],aod_estimated=self.data[self.y_col])
         rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
         n_samples = len(self.data)
         mask = ~np.isnan(self.data[self.x_col]) & ~np.isnan(self.data[self.y_col])
