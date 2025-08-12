@@ -2,16 +2,17 @@ import os
 import numpy as np
 import pandas as pd
 import xarray as xr
+import seaborn as sns
 import rioxarray as rxr
+from scipy.stats import t
 from glob import glob as gb
 import nasa_functions as nasa
-from pyproj import CRS, Transformer
-from datetime import datetime, timedelta
-import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 from matplotlib.lines import Line2D
+from pyproj import CRS, Transformer
 from scipy.stats import gaussian_kde
+from datetime import datetime, timedelta
 
 
 
@@ -111,13 +112,6 @@ def calcular_aod_550(df, colunas_aod, comprimentos_onda_nm):
     df['440-675_Angstrom_Exponent'] = df['440-675_Angstrom_Exponent'].replace(-999.0,np.nan)
     df_new = df[['time','AOD_550nm_est','440-675_Angstrom_Exponent']]
     return df_new.dropna()
-import rioxarray as rxr
-import xarray as xr
-import numpy as np
-from datetime import datetime, timedelta
-from pyproj import CRS, Transformer
-import os
-import pandas as pd
 
 
 class Maiac:
@@ -363,8 +357,13 @@ class AeroStations:
         sc = self.axis.scatter(x, y, c=density, cmap='hot', s=4, edgecolors='none',zorder=2,vmin=0,vmax=1)
         line1to1 = self.axis.plot([min_val,max_val],[min_val,max_val],c='lightsteelblue',linestyle='--',label='1x1 line',lw=0.7)
         slope, intercept, r_value, p_value, std_err = linregress(x, y)
-
-        equation = f'Y = {slope:.3f}X + {intercept:.3f}'
+        alpha = 0.05
+        df = len(x) - 2
+        t_crit = t.ppf(1 - alpha/2, df)
+        slope_ci = t_crit * std_err
+        slope_lower = slope - slope_ci
+        slope_upper = slope + slope_ci
+        equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X + {intercept:.3f}'
         self.axis.text(0.05, 0.95,
             f'R: {r_value:.3}'r' $p_{\mathrm{val}}$: 'f'{p_value:.2f}\nn: {n_samples}\nEE: {ee:.2f}% \nR$^{2}$: {r_value**2:.2f}\nRMSE: {rmse:.2f}\nstd_err: {std_err:.2}\n{equation}',
             transform=self.axis.transAxes, fontsize=10,fontdict={'fontfamily':'serif'},
