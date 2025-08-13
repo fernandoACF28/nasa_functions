@@ -196,7 +196,7 @@ def Organize_time(df_aeronet,
                 'time': t_center,
                 'AOD_AERONET_mean': subset[aeronet_aod_col].mean(),
                 'AOD_AERONET_std': subset[aeronet_aod_col].std(),
-                '675_Angstrom_Exponent':subset['675_Angstrom_Exponent'],
+                '675_Angstrom_Exponent':subset['440-675_Angstrom_Exponent'],
                 'n_samples': len(subset),
                 'window_start': t_start,
                 'window_end': t_end
