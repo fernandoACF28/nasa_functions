@@ -493,6 +493,8 @@ class AeroStations:
                     ax=self.axis,
                     line_kws={'linewidth':0.7},label='Linear Fit')
         sc = self.axis.scatter(x, y, c=AE, cmap=cmap, s=size, edgecolors='none',zorder=2)
+        min_val = min(self.data[self.x_col].min(),self.data[self.y_col].min())
+        max_val = max(self.data[self.x_col].max(),self.data[self.y_col].max())
         line1to1 = self.axis.plot([min_val,max_val],[min_val,max_val],c=AE,linestyle='--',label='1x1 line',lw=0.7)
         slope, intercept, r_value, p_value, std_err = linregress(x, y)
         alpha = 0.05
