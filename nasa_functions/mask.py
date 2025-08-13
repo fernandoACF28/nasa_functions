@@ -308,7 +308,7 @@ def expected_error_AOD(aod_station, aod_estimated):  # aod_estimated
             return proportion_within_envelope*100
 
 class AeroStations:
-    def __init__(self,data,x_col,y_col,std_val_x,std_val_y,x_label,y_label,title,axis):
+    def __init__(self,data,x_col,y_col,std_val_x,std_val_y,x_label,y_label,title,axis,despine=True):
         self.data = data
         self.x_col = x_col
         self.y_col = y_col
@@ -318,6 +318,7 @@ class AeroStations:
         self.x_label = x_label 
         self.y_label = y_label
         self.axis = axis
+        self.despine = despine
 
     def Plots_aero_vs_MCD(self,density_min,density_max):
         # params from error bar 
@@ -335,7 +336,10 @@ class AeroStations:
         self.axis.errorbar(self.data[self.x_col],
             self.data[self.y_col],**errorbar_kwargs)
         # retirate line from plot left and bootom 
-        #sns.despine(left=False, bottom=False)
+    
+        if self.despine == True:
+             sns.despine(left=False, bottom=False)
+        else: pass 
         # Useful metrics
         ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
         rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
@@ -345,6 +349,7 @@ class AeroStations:
         xy = np.vstack([x, y])
         density = gaussian_kde(xy)(xy)
         density_min = 0
+
         # density_min,density_max = density.min(),density.max()
         density = (density - density_min) / (density_max - density_min)
         min_val = min(self.data[self.x_col].min(),self.data[self.y_col].min())
