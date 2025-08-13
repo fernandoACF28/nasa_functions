@@ -459,3 +459,67 @@ class AeroStations:
         self.axis.set_xlabel(self.x_label,fontname='serif',fontsize=12)
         self.axis.set_ylabel(self.y_label,fontname='serif',fontsize=12)
         return sc
+    def PlotAeroxMCD(self,AE):
+        # params from error bar 
+        errorbar_kwargs = {
+            'xerr': self.data[self.std_val_x] if self.std_val_x in self.data else None,
+            'yerr': self.data[self.std_val_y] if self.std_val_y in self.data else None,
+            'fmt': 'o',
+            'color': 'none',
+            'markersize': 3,
+            'ecolor': 'gray',
+            'alpha': 0.3,
+            'capsize': 2 }
+        if errorbar_kwargs['xerr'] is None: del errorbar_kwargs['xerr']
+        if errorbar_kwargs['yerr'] is None: del errorbar_kwargs['yerr']
+        self.axis.errorbar(self.data[self.x_col],
+            self.data[self.y_col],**errorbar_kwargs)
+        # retirate line from plot left and bootom 
+    
+        if self.despine == True:
+             sns.despine(left=False, bottom=False)
+        else: pass 
+        # Useful metrics
+        ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
+        rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
+    
+        # Importants plots first (regplot,scatter(with density),line 1:1)
+        sns.regplot(self.data,x=self.x_col,y=self.y_col,ci=95,color='darkred',
+                    scatter=False,
+                    ax=self.axis,
+                    line_kws={'linewidth':0.7},label='Linear Fit')
+        sc = self.axis.scatter(x, y, c=density, cmap='hot', s=4, edgecolors='none',zorder=2,vmin=0,vmax=1)
+        line1to1 = self.axis.plot([min_val,max_val],[min_val,max_val],c=AE,linestyle='--',label='1x1 line',lw=0.7)
+        slope, intercept, r_value, p_value, std_err = linregress(x, y)
+        alpha = 0.05
+        df = len(x) - 2
+        t_crit = t.ppf(1 - alpha/2, df)
+        slope_ci = t_crit * std_err
+        if intercept >=0:
+            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X + {intercept:.3f}'
+        else:
+            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X {intercept:.3f}'
+        self.axis.text(0.05, 0.95,
+            f'R: {r_value:.3}'r' $p_{\mathrm{val}}$: 'f'{p_value:.2f}\nn: {n_samples}\nEE: {ee:.2f}% \nR$^{2}$: {r_value**2:.2f}\nRMSE: {rmse:.2f}\nstd_err: {std_err:.2}\n{equation}',
+            transform=self.axis.transAxes, fontsize=10,fontdict={'fontfamily':'serif'},
+            verticalalignment='top')
+        
+        error_caps = Line2D([0], [0],
+                            color='gray',
+                            linestyle='none',
+                            marker='_',  # horizontal cap
+                            markersize=10,
+                            markeredgewidth=1.5,
+                            alpha=0.5,
+                            label='STD_Value'
+                        )
+        handles, labels = self.axis.get_legend_handles_labels()
+        handles.extend([line1to1, error_caps])
+        labels.extend(['1:1 Line', 'STD_Value'])
+        self.axis.legend(handles=handles, labels=labels)
+
+        # Title and Legends
+        self.axis.set_title(self.title,fontname='serif',fontsize=12)
+        self.axis.set_xlabel(self.x_label,fontname='serif',fontsize=12)
+        self.axis.set_ylabel(self.y_label,fontname='serif',fontsize=12)
+        return sc 
