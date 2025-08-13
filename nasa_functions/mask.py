@@ -2,16 +2,17 @@ import os
 import numpy as np
 import pandas as pd
 import xarray as xr
+import seaborn as sns
 import rioxarray as rxr
+from scipy.stats import t
 from glob import glob as gb
 import nasa_functions as nasa
-from pyproj import CRS, Transformer
-from datetime import datetime, timedelta
-import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 from matplotlib.lines import Line2D
+from pyproj import CRS, Transformer
 from scipy.stats import gaussian_kde
+from datetime import datetime, timedelta
 
 
 
@@ -111,13 +112,6 @@ def calcular_aod_550(df, colunas_aod, comprimentos_onda_nm):
     df['440-675_Angstrom_Exponent'] = df['440-675_Angstrom_Exponent'].replace(-999.0,np.nan)
     df_new = df[['time','AOD_550nm_est','440-675_Angstrom_Exponent']]
     return df_new.dropna()
-import rioxarray as rxr
-import xarray as xr
-import numpy as np
-from datetime import datetime, timedelta
-from pyproj import CRS, Transformer
-import os
-import pandas as pd
 
 
 class Maiac:
@@ -291,32 +285,30 @@ class Maiac:
         
         df = pd.DataFrame(data_list)
         os.makedirs('Parquet_datas', exist_ok=True)     
-        df.to_parquet(f'Parquet_datas/{self.product_name}_{self.year}_{self.index_iteraction}.parquet',index=False)
+        df.to_parquet(f'Parquet_datas/{self.product_name}_{self.year}_{self.index_iteraction}.parquet',index=False) # aod_estimated
 
-    
-
-def expected_error_AOD(aod_station, aod_estimated):
-    """
-    aod_station: insert aod_reference_station
-    aod_estimed: insert aod_estimated
+def expected_error_AOD(aod_station, aod_estimated):  # aod_estimated
+            """
+            aod_station: insert aod_reference_station
+            aod_estimed: insert aod_estimated
 
 
 
-    Verifica a proporção de estimativas AOD dentro do intervalo de erro esperado (EE),
-    conforme o critério: AOD - EE <= AOD_modelo <= AOD + EE
-    onde EE = 0.05 + 0.1 * AOD.
-    """
-    aod_station,aod_estimated = aod_station.dropna(),aod_estimated.dropna()
-    expected_error = 0.05 + 0.15 * aod_estimated
-    lower_bound = aod_station - expected_error
-    upper_bound = aod_station + expected_error
-        
-    within_envelope = (aod_estimated >= lower_bound) & (aod_estimated <= upper_bound)
-    proportion_within_envelope = within_envelope.sum() / len(within_envelope)
-    return proportion_within_envelope*100
+            Verifica a proporção de estimativas AOD dentro do intervalo de erro esperado (EE),
+            conforme o critério: AOD - EE <= AOD_modelo <= AOD + EE
+            onde EE = 0.05 + 0.1 * AOD.
+            """
+            aod_station,aod_estimated = aod_station.dropna(),aod_estimated.dropna()
+            expected_error = 0.05 + 0.15 * aod_station
+            lower_bound = aod_station - expected_error
+            upper_bound = aod_station + expected_error
+                
+            within_envelope = (aod_estimated >= lower_bound) & (aod_estimated <= upper_bound)
+            proportion_within_envelope = within_envelope.sum() / len(within_envelope)
+            return proportion_within_envelope*100
 
 class AeroStations:
-    def __init__(self,data,x_col,y_col,std_val_x,std_val_y,x_label,y_label,title,axis):
+    def __init__(self,data,x_col,y_col,std_val_x,std_val_y,x_label,y_label,title,axis,despine=True):
         self.data = data
         self.x_col = x_col
         self.y_col = y_col
@@ -326,6 +318,7 @@ class AeroStations:
         self.x_label = x_label 
         self.y_label = y_label
         self.axis = axis
+        self.despine = despine
 
     def Plots_aero_vs_MCD(self,density_min,density_max):
         # params from error bar 
@@ -343,7 +336,10 @@ class AeroStations:
         self.axis.errorbar(self.data[self.x_col],
             self.data[self.y_col],**errorbar_kwargs)
         # retirate line from plot left and bootom 
-        #sns.despine(left=False, bottom=False)
+    
+        if self.despine == True:
+             sns.despine(left=False, bottom=False)
+        else: pass 
         # Useful metrics
         ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
         rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
@@ -353,6 +349,7 @@ class AeroStations:
         xy = np.vstack([x, y])
         density = gaussian_kde(xy)(xy)
         density_min = 0
+
         # density_min,density_max = density.min(),density.max()
         density = (density - density_min) / (density_max - density_min)
         min_val = min(self.data[self.x_col].min(),self.data[self.y_col].min())
@@ -365,8 +362,14 @@ class AeroStations:
         sc = self.axis.scatter(x, y, c=density, cmap='hot', s=4, edgecolors='none',zorder=2,vmin=0,vmax=1)
         line1to1 = self.axis.plot([min_val,max_val],[min_val,max_val],c='lightsteelblue',linestyle='--',label='1x1 line',lw=0.7)
         slope, intercept, r_value, p_value, std_err = linregress(x, y)
-
-        equation = f'Y = {slope:.3f}X + {intercept:.3f}'
+        alpha = 0.05
+        df = len(x) - 2
+        t_crit = t.ppf(1 - alpha/2, df)
+        slope_ci = t_crit * std_err
+        if intercept >=0:
+            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X + {intercept:.3f}'
+        else:
+            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X {intercept:.3f}'
         self.axis.text(0.05, 0.95,
             f'R: {r_value:.3}'r' $p_{\mathrm{val}}$: 'f'{p_value:.2f}\nn: {n_samples}\nEE: {ee:.2f}% \nR$^{2}$: {r_value**2:.2f}\nRMSE: {rmse:.2f}\nstd_err: {std_err:.2}\n{equation}',
             transform=self.axis.transAxes, fontsize=10,fontdict={'fontfamily':'serif'},
