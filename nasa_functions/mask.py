@@ -364,7 +364,7 @@ class AeroStations:
         if intercept >=0:
             equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X + {intercept:.3f}'
         else:
-            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X - {intercept:.3f}'
+            equation = f'Y = ({slope:.3f} ± {slope_ci:.3f})X {intercept:.3f}'
         self.axis.text(0.05, 0.95,
             f'R: {r_value:.3}'r' $p_{\mathrm{val}}$: 'f'{p_value:.2f}\nn: {n_samples}\nEE: {ee:.2f}% \nR$^{2}$: {r_value**2:.2f}\nRMSE: {rmse:.2f}\nstd_err: {std_err:.2}\n{equation}',
             transform=self.axis.transAxes, fontsize=10,fontdict={'fontfamily':'serif'},
