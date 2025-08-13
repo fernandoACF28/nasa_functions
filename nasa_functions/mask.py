@@ -459,7 +459,7 @@ class AeroStations:
         self.axis.set_xlabel(self.x_label,fontname='serif',fontsize=12)
         self.axis.set_ylabel(self.y_label,fontname='serif',fontsize=12)
         return sc
-    def PlotAeroxMCD(self,AE):
+    def PlotAeroxMCD(self,AE,cmap='hot',size=4):
         # params from error bar 
         
         errorbar_kwargs = {
@@ -492,7 +492,7 @@ class AeroStations:
                     scatter=False,
                     ax=self.axis,
                     line_kws={'linewidth':0.7},label='Linear Fit')
-        sc = self.axis.scatter(x, y, c=density, cmap='hot', s=4, edgecolors='none',zorder=2,vmin=0,vmax=1)
+        sc = self.axis.scatter(x, y, c=AE, cmap=cmap, s=size, edgecolors='none',zorder=2)
         line1to1 = self.axis.plot([min_val,max_val],[min_val,max_val],c=AE,linestyle='--',label='1x1 line',lw=0.7)
         slope, intercept, r_value, p_value, std_err = linregress(x, y)
         alpha = 0.05
