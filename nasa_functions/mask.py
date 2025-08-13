@@ -461,6 +461,7 @@ class AeroStations:
         return sc
     def PlotAeroxMCD(self,AE):
         # params from error bar 
+        
         errorbar_kwargs = {
             'xerr': self.data[self.std_val_x] if self.std_val_x in self.data else None,
             'yerr': self.data[self.std_val_y] if self.std_val_y in self.data else None,
@@ -482,6 +483,9 @@ class AeroStations:
         # Useful metrics
         ee = expected_error_AOD(self.data[self.x_col],self.data[self.y_col])
         rmse = nasa.rmse_dataframe(self.data,self.x_col,self.y_col)
+        n_samples = len(self.data)
+        mask = ~np.isnan(self.data[self.x_col]) & ~np.isnan(self.data[self.y_col])
+        x, y = self.data[self.x_col][mask], self.data[self.y_col][mask]
     
         # Importants plots first (regplot,scatter(with density),line 1:1)
         sns.regplot(self.data,x=self.x_col,y=self.y_col,ci=95,color='darkred',
