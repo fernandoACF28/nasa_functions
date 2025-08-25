@@ -18,7 +18,7 @@ pip install uv
 For all the libraries:
 
 ``` bash 
-uv pip install pyproj rioxarray geopandas xarray tqdm haversine earthaccess seaborn
+uv pip install pyproj rioxarray geopandas xarray tqdm haversine earthaccess seaborn pyarrow fastparquet
 ```
 for the libraries gdal and libgdal-hdf4 you need install using conda.
 ``` bash 
@@ -30,7 +30,7 @@ conda install -c conda-forge gdal=3.10 rasterio libgdal-hdf4
 To install this package, you can use `pip`:
 
 ```bash
-pip install git+https://github.com/fernandoACF28/nasa_functions.git
+uv pip install git+https://github.com/fernandoACF28/nasa_functions.git
 
 ```
 # For using the process_hdf_FILES().
@@ -54,7 +54,7 @@ maiac.extract_csv()
 # Upgrade functions
 
 ``` bash 
-pip install --upgrade --force-reinstall git+https://github.com/fernandoACF28/nasa_functions.git
+uv pip install --upgrade --force-reinstall git+https://github.com/fernandoACF28/nasa_functions.git
 ```
 
 
