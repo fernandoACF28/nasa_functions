@@ -18,7 +18,7 @@ pip install uv
 For all the libraries:
 
 ``` bash 
-uv pip install pyproj rioxarray geopandas xarray tqdm haversine earthaccess seaborn pyarrow fastparquet
+uv pip install pyproj rioxarray geopandas xarray tqdm haversine earthaccess seaborn pyarrow fastparquet scipy
 ```
 for the libraries gdal and libgdal-hdf4 you need install using conda.
 ``` bash 
